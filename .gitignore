@@ -1,0 +1,14 @@
+.venv/
+venv/
+__pycache__/
+*.pyc
+external_datasets/
+data/
+.streamlit/secrets.toml
+uploads/
+.cache/
+.DS_Store
+.ipynb_checkpoints/
+.cache_before.json
+.list_hf_cache.ps1
+.probe_acoustic.py

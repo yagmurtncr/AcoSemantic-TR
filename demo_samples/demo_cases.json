@@ -1,0 +1,14 @@
+{
+  "calm_words_high_stress.wav": {
+    "semantic_prompt": "Bugün çok mutlu ve harika hissediyorum.",
+    "stress_override": 0.84
+  },
+  "positive_words_angry_tone.wav": {
+    "semantic_prompt": "Bugün harika hissediyorum, işler çok iyi gidiyor.",
+    "stress_override": 0.78
+  },
+  "neutral_words_controlled_tone.wav": {
+    "semantic_prompt": "Sıradan bir gün, normal işlere devam ediyorum.",
+    "stress_override": 0.22
+  }
+}
