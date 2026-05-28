@@ -35,22 +35,3 @@ def build_mel_spectrogram_figure(audio: np.ndarray, sample_rate: int) -> plt.Fig
     figure.colorbar(image, ax=axis, format="%+2.0f dB")
     figure.tight_layout()
     return figure
-
-
-def compute_prosody_heuristics(audio: np.ndarray, sample_rate: int) -> dict[str, float]:
-    rms = float(np.mean(librosa.feature.rms(y=audio)))
-    zcr = float(np.mean(librosa.feature.zero_crossing_rate(y=audio)))
-    centroid = float(np.mean(librosa.feature.spectral_centroid(y=audio, sr=sample_rate)))
-    bandwidth = float(np.mean(librosa.feature.spectral_bandwidth(y=audio, sr=sample_rate)))
-
-    energy_score = min(max(rms * 12.0, 0.0), 1.0)
-    tension_score = min(max((zcr * 7.0) + (centroid / 8_000.0) + (bandwidth / 8_000.0), 0.0), 1.0) / 3.0
-    stress_score = min(max((energy_score * 0.5) + (tension_score * 0.5), 0.0), 1.0)
-
-    return {
-        "rms": rms,
-        "zcr": zcr,
-        "centroid": centroid,
-        "bandwidth": bandwidth,
-        "stress_score": stress_score,
-    }

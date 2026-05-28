@@ -1,6 +1,6 @@
 """Download the RAVDESS speech zip from Zenodo and extract 3 example wav files into demo_samples/.
 
-Targets chosen heuristically to provide contrasting emotions:
+Targets chosen to provide contrasting emotions:
 - calm (02) strong intensity actor 01
 - angry (05) normal intensity actor 02
 - neutral (01) normal intensity actor 03

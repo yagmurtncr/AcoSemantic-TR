@@ -9,6 +9,9 @@ from .config import POSITIVE_THRESHOLD, STRESS_THRESHOLD
 from .models import analyze_acoustic_emotion, analyze_sentiment, transcribe_speech
 
 
+# -----------------------------------------------------------------------------
+# Shared result structure
+# -----------------------------------------------------------------------------
 @dataclass(slots=True)
 class AnalysisResult:
     transcript: str
@@ -23,6 +26,9 @@ class AnalysisResult:
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
+# -----------------------------------------------------------------------------
+# Decision logic
+# -----------------------------------------------------------------------------
 def _decision(positivity_score: float, stress_score: float) -> tuple[bool, float, str]:
     if positivity_score > POSITIVE_THRESHOLD and stress_score > STRESS_THRESHOLD:
         discordance_score = (positivity_score + stress_score) / 2.0
@@ -34,6 +40,9 @@ def _decision(positivity_score: float, stress_score: float) -> tuple[bool, float
     return False, discordance_score, verdict
 
 
+# -----------------------------------------------------------------------------
+# End-to-end analysis pipeline
+# -----------------------------------------------------------------------------
 def analyze_audio_file(
     audio_path: str | Path,
     asr_model: str,

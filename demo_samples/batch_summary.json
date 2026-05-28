@@ -1,0 +1,24 @@
+{
+  "total_files": 26,
+  "anomalies": 2,
+  "normal": 24,
+  "anomaly_rate": 0.0769,
+  "average_positivity": 0.453,
+  "average_stress": 0.3128,
+  "acoustic_modes": {
+    "classifier-override": 3,
+    "classifier": 23
+  },
+  "top_anomalies": [
+    {
+      "file": "calm_words_high_stress.wav",
+      "discordance": 0.9089974296092986,
+      "verdict": "Anomali Tespit Edildi: Kullanici kelimeleriyle stresini gizliyor!"
+    },
+    {
+      "file": "positive_words_angry_tone.wav",
+      "discordance": 0.8835842156410217,
+      "verdict": "Anomali Tespit Edildi: Kullanici kelimeleriyle stresini gizliyor!"
+    }
+  ]
+}

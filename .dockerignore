@@ -1,0 +1,16 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.streamlit/
+data/
+external_datasets/
+demo_samples/*.wav
+demo_samples/*.mp3
+demo_samples/*.flac
+demo_samples/*.ogg
+demo_samples/*.json
+uploads/
+*.log

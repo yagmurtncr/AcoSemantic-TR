@@ -1,86 +1,103 @@
-# AcoSemantic-TR
+## AcoSemantic-TR — Kısa Tanım
 
-Turkce konusmada metin anlami ile ses tonunu ayni anda inceleyen bir "maskeli duygu" demo projesi. Sistem, konusmayi yaziya cevirir, Turkce sentiment ile metin pozitifligini olcer, akustik modelle stres ipuclari cikarir ve iki sinyali birlikte yorumlayarak celiskili durumlari isaretler.
+AcoSemantic-TR, Türkçe konuşmalarda metin anlamı ile sesin akustik özelliklerini (ton, stres) birlikte değerlendirerek duygu çelişkilerini ve anomalileri tespit eden bir analiz servisidir.
 
-## Ozellikler
+Hedef: Uçtan uca çalışan, tekrar kullanılabilir JSON çıktısı veren ve üretime alınmaya uygun bir analiz katmanı sunmak.
 
-- Ses dosyasindan otomatik konusma metni cikarma
-- Turkce metin duygu analizi
-- Akustik stres tahmini ve heuristik fallback
-- Mel-spektrogram goruntuleme
-- Streamlit tabanli tek sayfa arayuz
+## Hızlı Başlangıç
 
-## Kisa Bilgi
-
-- ASR: `openai/whisper-small`
-- Sentiment: `savasy/bert-base-turkish-sentiment-cased`
-- Akustik: `dynann/emotion-speech-recognition`
-- Karar esikleri: `Metin_Pozitiflik > 0.50` ve `Ses_Stres > 0.30`
-
-## Kurulum
-
-1. Python 3.10 veya uzeri kurulu olsun.
-2. Bagimliliklari yukleyin:
+1. Sanal ortam oluşturun ve etkinleştirin (ör. venv).
+2. Bağımlılıkları yükleyin:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Nvidia GPU varsa CUDA destekli PyTorch surumunu kullanin. Yoksa CPU surumu ile devam edebilirsiniz.
+3. Hugging Face token'ınızı ayarlayın (bakınız Token Yönetimi).
 
-## Calistirma
+## Token Yönetimi
+
+Model erişimi için `HF_TOKEN` veya `HUGGINGFACE_HUB_TOKEN` gereklidir. Bu token'ı repoya eklemeyin; geçici olarak PowerShell'de ayarlayabilir veya yerel, .gitignored `.streamlit/secrets.toml` içine koyabilirsiniz:
+
+```toml
+HF_TOKEN = "your_hugging_face_token"
+HUGGINGFACE_HUB_TOKEN = "your_hugging_face_token"
+```
+
+PowerShell örneği:
+
+```powershell
+$env:HF_TOKEN = "your_hugging_face_token"
+$env:HUGGINGFACE_HUB_TOKEN = $env:HF_TOKEN
+streamlit run app.py
+```
+
+## Nasıl Çalıştırılır
+
+API başlatmak için:
+
+```bash
+uvicorn api:app --reload
+```
+
+Sağlık kontrolü:
+
+```bash
+curl http://127.0.0.1:8000/health
+```
+
+Dosya ile analiz örneği (curl):
+
+```bash
+curl -X POST "http://127.0.0.1:8000/analyze" \
+  -F "file=@demo_samples/ornek.wav" \
+  -F "asr_model=Whisper Small" \
+  -F "sentiment_model=Savasy Turkish Sentiment" \
+  -F "acoustic_model=DynAnn Speech Emotion"
+```
+
+Streamlit UI çalıştırmak için:
 
 ```bash
 streamlit run app.py
 ```
 
-## Demo Akisi
+## Klasör Yapısı (Önemli Dosyalar)
 
-Arayuzde iki kaynak vardir:
+- `api.py` — FastAPI endpoint'leri
+- `app.py` — Streamlit arayüzü
+- `src/analysis.py` — Analiz ve karar mantığı
+- `src/models.py` — Model yükleme ve çıkarım
+- `demo_samples/` — Örnek sesler ve demo çıktıları
 
-- `Yuklenen dosya`: Harici ses dosyasini yukleyip analiz edersiniz.
-- `Demo klasoru`: `demo_samples/` icindeki hazir orneklerden birini secip tek tikla calistirirsiniz.
+## Varsayılan Modeller ve Eşikler
 
-Eger elinizde RAVDESS veya EMO-DB uzerinden alinan sesler varsa bunlari `demo_samples/` klasorune koyun. Arayuz otomatik algilar.
+- ASR: `openai/whisper-small` (varsayılan)
+- Sentiment: `savasy/bert-base-turkish-sentiment-cased` (varsayılan)
+- Akustik: `dynann/emotion-speech-recognition` (varsayılan)
+- Karar eşikleri (varsayılan, veriyle doğrulanmalı): Metin_Pozitiflik > 0.50, Ses_Stres > 0.30
 
-## Model Notlari
+## Docker (Hızlı)
 
-- Varsayilan ASR modeli olarak `openai/whisper-small` kullanilir.
-- Turkce sentiment tarafinda `savasy/bert-base-turkish-sentiment-cased` tercih edilir; model bulunamazsa heuristik fallback devreye girer.
-- Akustik tarafta `dynann/emotion-speech-recognition` onceliklidir; gerekirse yedek modeller denenir.
-- Model yuklenemezse sistem tamamen durmaz, akustik ve metin icin heuristik yaklasimlarla calismaya devam eder.
+Üretim benzeri tek servis çalıştırma için:
 
-## Karar Mekanizmasi
-
-```text
-Eger Metin_Pozitiflik > 0.50 ve Ses_Stres > 0.30 ise:
-    Celiski_Skoru = (Metin_Pozitiflik + Ses_Stres) / 2
-    "Anomali Tespit Edildi"
+```bash
+docker build -t acosemantic-tr-api .
+docker run --rm -p 8000:8000 --env-file .env acosemantic-tr-api
 ```
 
-## Sistem Mimarisi
+## Notlar ve İpuçları
 
-```mermaid
-flowchart TD
-    A[Ses Dosyasi] --> B[ASR: Whisper Small / Base / Wav2Vec2 Turkish]
-    A --> C[Akustik Analiz: Wav2Vec2 Emotion / Backup / MMS Fallback]
-    B --> D[Turkce Metin]
-    D --> E[BERT Sentiment]
-    E --> F[Metin Pozitiflik Skoru]
-    C --> G[Ses Stres Skoru]
-    F --> H[Karar Motoru]
-    G --> H
-    H --> I{Pozitiflik > 0.50 ve Stres > 0.30?}
-    I -- Evet --> J[Anomali Tespit Edildi]
-    I -- Hayir --> K[Normal Akis]
-```
+- Model yükleme başarısız olursa uygulama doğrudan hata verir — bu proje model tabanlı çalışmayı zorunlu kılar.
+- `demo_samples/` klasörüne test sesleri konulursa arayüz otomatik listeler.
 
-## Demo Dosyalari
+## Geliştirme ve Yayına Hazırlık
 
-`demo_samples/` klasorune RAVDESS veya EMO-DB uzerinden en az 3 celiskili ornek wav dosyasi koyun. Iyi test kombinasyonlari:
+1. Eşikleri gerçek veriyle yeniden kalibre edin.
+2. Smoke testleri ve temel birim testlerini çalıştırın.
+3. Kod formatlayıcı ve linter (Black, isort, ruff/flake8) çalıştırın.
+4. Üretim `.env` ve secret yönetimini doğrulayın.
 
-- Sakin kelimeler + yuksek stres tonu
-- Mutlu kelimeler + sinirli ton
-- Nötr kelimeler + baskili ve kontrollu ton
+---
 
-Klasor icindeki ornekler arayuzde otomatik listelenir.
+İhtiyorsanız README'yi daha kısa bir kullanıcı rehberi veya dağıtım talimatına da indirebilirim.

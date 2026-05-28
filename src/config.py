@@ -13,7 +13,7 @@ DEFAULT_SENTIMENT_MODELS = {
 
 DEFAULT_ACOUSTIC_MODELS = {
     "DynAnn Speech Emotion": "dynann/emotion-speech-recognition",
-    "Wav2Vec2 Emotion Backup": "ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition",
+    "Wav2Vec2 Emotion": "ehcalabres/wav2vec2-lg-xlsr-en-speech-emotion-recognition",
     "MMS Multilingual Encoder": "facebook/mms-1b-all",
 }
 
