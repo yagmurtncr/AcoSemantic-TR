@@ -1,3 +1,17 @@
+# AcoSemantic-TR
+
+<p>
+  <img src="https://img.shields.io/badge/Python-3.9%2B-3776AB?logo=python&logoColor=white" />
+  <img src="https://img.shields.io/badge/Streamlit-FF4B4B?logo=streamlit&logoColor=white" />
+  <img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Models-FFD21E" />
+  <img src="https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white" />
+  <img src="https://img.shields.io/badge/License-MIT-green.svg" />
+</p>
+
+> **Acoustic–semantic emotion analysis for Turkish speech.** Detects emotion mismatches and
+> anomalies by jointly evaluating textual meaning and acoustic features (tone, stress), exposing a
+> production-ready analysis layer with reusable JSON output (FastAPI + Streamlit). *Docs in Turkish.*
+
 ## AcoSemantic-TR — Kısa Tanım
 
 AcoSemantic-TR, Türkçe konuşmalarda metin anlamı ile sesin akustik özelliklerini (ton, stres) birlikte değerlendirerek duygu çelişkilerini ve anomalileri tespit eden bir analiz servisidir.
