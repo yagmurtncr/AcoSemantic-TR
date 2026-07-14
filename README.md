@@ -18,6 +18,26 @@ AcoSemantic-TR, Türkçe konuşmalarda metin anlamı ile sesin akustik özellikl
 
 Hedef: Uçtan uca çalışan, tekrar kullanılabilir JSON çıktısı veren ve üretime alınmaya uygun bir analiz katmanı sunmak.
 
+## Mimari (Architecture)
+
+```mermaid
+flowchart LR
+    AUDIO["🔊 Speech audio"] --> ASR["ASR → text"]
+    AUDIO --> ACO["Acoustic features<br/>(pitch, tone, stress)"]
+
+    ASR --> SEM["Semantic emotion<br/>(text meaning)"]
+    ACO --> AEMO["Acoustic emotion<br/>(voice)"]
+
+    SEM --> CMP{"Compare<br/>semantic vs acoustic"}
+    AEMO --> CMP
+    CMP -->|"mismatch / anomaly"| FLAG["⚠️ Emotion conflict flagged"]
+    CMP -->|"consistent"| OK["Consistent"]
+
+    FLAG --> JSON["Structured JSON report"]
+    OK --> JSON
+    JSON --> API["FastAPI / Streamlit"]
+```
+
 ## Hızlı Başlangıç
 
 1. Sanal ortam oluşturun ve etkinleştirin (ör. venv).
