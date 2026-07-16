@@ -10,7 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from src.analysis import analyze_audio_file
-from src.config import DEFAULT_ASR_MODELS, DEFAULT_SENTIMENT_MODELS, DEFAULT_ACOUSTIC_MODELS
+from src.config import DEFAULT_ACOUSTIC_MODELS, DEFAULT_ASR_MODELS, DEFAULT_SENTIMENT_MODELS
 
 DEMO = ROOT / "demo_samples"
 OUT = DEMO / "demo_results.json"

@@ -36,7 +36,7 @@ for actor in range(1, 6):
 
 success = []
 failed = []
-for i, url in enumerate(urls):
+for url in urls:
     if len(success) >= 3:
         break
     try:

@@ -1,6 +1,7 @@
 # AcoSemantic-TR
 
 <p>
+  <img src="https://github.com/yagmurtncr/AcoSemantic-TR/actions/workflows/ci.yml/badge.svg" alt="CI" />
   <img src="https://img.shields.io/badge/Python-3.9%2B-3776AB?logo=python&logoColor=white" />
   <img src="https://img.shields.io/badge/Streamlit-FF4B4B?logo=streamlit&logoColor=white" />
   <img src="https://img.shields.io/badge/%F0%9F%A4%97%20Hugging%20Face-Models-FFD21E" />
@@ -95,6 +96,22 @@ Streamlit UI çalıştırmak için:
 ```bash
 streamlit run app.py
 ```
+
+## 🧪 Test & Kod Kalitesi
+
+Karar mantığı (`src/decision.py`) ses I/O ve modellerden ayrılmıştır; bu sayede saf,
+hızlı ve **ağır bağımlılık gerektirmeden** test edilebilir.
+
+```bash
+ruff check .     # lint (CI'da zorunlu)
+pytest -q        # birim testleri (~0.1 sn, torch/librosa gerekmez)
+```
+
+- **CI** — GitHub Actions her push/PR'da `ruff` + `pytest` çalıştırır
+- **Testler** karar motorunun tüm dallarını (maskeleme anomalisi, sınır durumları,
+  ayarlanabilir eşikler) ve config bütünlüğünü kapsar
+
+---
 
 ## Klasör Yapısı (Önemli Dosyalar)
 

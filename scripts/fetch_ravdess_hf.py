@@ -4,8 +4,8 @@ This script tries a list of dataset identifiers and saves audio files it finds t
 """
 from __future__ import annotations
 
-from pathlib import Path
 import sys
+from pathlib import Path
 
 from datasets import load_dataset
 

@@ -9,7 +9,6 @@ from pydantic import BaseModel, Field
 from src.analysis import analyze_audio_file
 from src.config import DEFAULT_ACOUSTIC_MODELS, DEFAULT_ASR_MODELS, DEFAULT_SENTIMENT_MODELS
 
-
 app = FastAPI(title="AcoSemantic-TR API", version="0.1.0")
 
 

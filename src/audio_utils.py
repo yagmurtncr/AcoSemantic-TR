@@ -1,13 +1,11 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Tuple
 
 import librosa
 import librosa.display
 import matplotlib.pyplot as plt
 import numpy as np
-import soundfile as sf
 
 from .config import TARGET_SAMPLE_RATE
 

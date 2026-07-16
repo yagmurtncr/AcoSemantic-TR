@@ -9,8 +9,12 @@ import streamlit as st
 
 from src.analysis import analyze_audio_file
 from src.audio_utils import build_mel_spectrogram_figure, load_audio
-from src.config import DEFAULT_ACOUSTIC_MODELS, DEFAULT_ASR_MODELS, DEFAULT_SENTIMENT_MODELS, MAX_UPLOAD_MB
-
+from src.config import (
+    DEFAULT_ACOUSTIC_MODELS,
+    DEFAULT_ASR_MODELS,
+    DEFAULT_SENTIMENT_MODELS,
+    MAX_UPLOAD_MB,
+)
 
 # -----------------------------------------------------------------------------
 # Page setup

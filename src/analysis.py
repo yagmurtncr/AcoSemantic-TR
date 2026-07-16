@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from .audio_utils import load_audio
-from .config import POSITIVE_THRESHOLD, STRESS_THRESHOLD
+from .decision import decide
 from .models import analyze_acoustic_emotion, analyze_sentiment, transcribe_speech
 
 
@@ -24,20 +24,6 @@ class AnalysisResult:
     verdict: str
     acoustic_mode: str
     metadata: dict[str, Any] = field(default_factory=dict)
-
-
-# -----------------------------------------------------------------------------
-# Decision logic
-# -----------------------------------------------------------------------------
-def _decision(positivity_score: float, stress_score: float) -> tuple[bool, float, str]:
-    if positivity_score > POSITIVE_THRESHOLD and stress_score > STRESS_THRESHOLD:
-        discordance_score = (positivity_score + stress_score) / 2.0
-        verdict = "Anomali Tespit Edildi: Kullanici kelimeleriyle stresini gizliyor!"
-        return True, discordance_score, verdict
-
-    discordance_score = abs(positivity_score - stress_score)
-    verdict = "Belirgin bir duygu celiskisi saptanmadi."
-    return False, discordance_score, verdict
 
 
 # -----------------------------------------------------------------------------
@@ -72,7 +58,7 @@ def analyze_audio_file(
             "mode": f"{acoustic_result['mode']}-override",
         }
 
-    anomaly_detected, discordance_score, verdict = _decision(
+    anomaly_detected, discordance_score, verdict = decide(
         sentiment_result["positivity"],
         acoustic_result["score"],
     )

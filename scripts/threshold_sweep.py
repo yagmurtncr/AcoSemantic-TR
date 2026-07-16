@@ -9,16 +9,16 @@ Logic:
   score the pair by: true_positives - false_positives (higher is better).
 - Recommend the pair with highest score, and print top candidates.
 """
-from pathlib import Path
-import json
 import itertools
+import json
 import sys
+from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from src.analysis import analyze_audio_file
-from src.config import DEFAULT_ASR_MODELS, DEFAULT_SENTIMENT_MODELS, DEFAULT_ACOUSTIC_MODELS
+from src.config import DEFAULT_ACOUSTIC_MODELS, DEFAULT_ASR_MODELS, DEFAULT_SENTIMENT_MODELS
 
 DEMO = ROOT / "demo_samples"
 CASES_PATH = DEMO / "demo_cases.json"
@@ -48,8 +48,8 @@ demo_positives = {name for name, r in results.items() if r.get("demo_mode") and 
 print(f"Demo positive (expected anomalies): {sorted(demo_positives)}")
 
 # Grid search
-pos_range = [round(x,2) for x in list([0.5,0.55,0.6,0.65,0.7,0.75,0.8])]
-stress_range = [round(x,2) for x in list([0.4,0.45,0.5,0.55,0.6,0.65,0.7,0.75])]
+pos_range = [round(x,2) for x in [0.5,0.55,0.6,0.65,0.7,0.75,0.8]]
+stress_range = [round(x,2) for x in [0.4,0.45,0.5,0.55,0.6,0.65,0.7,0.75]]
 
 def score_threshold(pthr, sthr):
     preds = {name for name,(p,s) in scores.items() if p>pthr and s>sthr}
@@ -67,7 +67,7 @@ results_grid.sort(reverse=True, key=lambda x: (x[0], x[1], -x[2]))
 print("Top candidates (score, tp, fp, pos_thr, stress_thr):")
 for row in results_grid[:6]:
     sc,tp,fp,p,s,preds = row
-    print(sc, tp, fp, p, s, sorted(list(preds))[:5])
+    print(sc, tp, fp, p, s, sorted(preds)[:5])
 
 best = results_grid[0]
 _, best_tp, best_fp, best_p, best_s, best_preds = best

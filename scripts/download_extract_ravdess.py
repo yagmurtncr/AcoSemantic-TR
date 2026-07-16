@@ -10,9 +10,10 @@ If download fails, script exits with non-zero code.
 from __future__ import annotations
 
 import sys
-from pathlib import Path
-import requests
 import zipfile
+from pathlib import Path
+
+import requests
 
 OUT_DIR = Path("../demo_samples").resolve()
 OUT_DIR.mkdir(parents=True, exist_ok=True)
