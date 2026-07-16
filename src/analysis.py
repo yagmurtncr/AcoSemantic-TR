@@ -4,6 +4,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
+from . import prosody
 from .audio_utils import load_audio
 from .decision import decide
 from .models import analyze_acoustic_emotion, analyze_sentiment, transcribe_speech
@@ -24,6 +25,8 @@ class AnalysisResult:
     verdict: str
     acoustic_mode: str
     metadata: dict[str, Any] = field(default_factory=dict)
+    prosodic_stress: float = 0.0
+    prosodic_features: dict[str, Any] = field(default_factory=dict)
 
 
 # -----------------------------------------------------------------------------
@@ -49,7 +52,21 @@ def analyze_audio_file(
         "positivity": 0.0,
         "raw": None,
     }
-    acoustic_result = analyze_acoustic_emotion(audio, sample_rate, acoustic_model)
+    # Model-free prosodic descriptors (pitch, energy, tempo, pauses).
+    prosodic = prosody.extract(audio, sample_rate)
+    prosodic_stress = prosody.stress_index(audio, sample_rate, prosodic)
+
+    try:
+        acoustic_result = analyze_acoustic_emotion(audio, sample_rate, acoustic_model)
+    except Exception as exc:  # acoustic model unavailable -> degrade to prosody
+        acoustic_result = {
+            "label": "prosodic-fallback",
+            "score": prosodic_stress,
+            "mode": "prosody-only",
+            "raw": {"error": str(exc)},
+            "model": None,
+        }
+
     if stress_override is not None:
         acoustic_result = {
             **acoustic_result,
@@ -73,6 +90,8 @@ def analyze_audio_file(
         discordance_score=float(discordance_score),
         verdict=verdict,
         acoustic_mode=str(acoustic_result["mode"]),
+        prosodic_stress=float(prosodic_stress),
+        prosodic_features=prosodic.as_dict(),
         metadata={
             "sample_rate": sample_rate,
             "transcription_raw": transcript_result["raw"],
@@ -82,5 +101,7 @@ def analyze_audio_file(
             "acoustic_raw": acoustic_result["raw"],
             "acoustic_model": acoustic_result.get("model"),
             "stress_override": stress_override,
+            "prosodic_stress": float(prosodic_stress),
+            "prosodic_features": prosodic.as_dict(),
         },
     )

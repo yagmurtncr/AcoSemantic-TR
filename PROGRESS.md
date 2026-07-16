@@ -28,6 +28,10 @@ Analiz akışı kısaca:
 - ASR, sentiment ve akustik analiz ile karar motoru entegre edildi.
 - Hugging Face token desteği eklendi (çevresel değişken veya `.streamlit/secrets.toml`).
 - Model tabanlı (heuristic-free) analiz akışı kuruldu.
+- **Prozodik özellik çıkarımı (model-free, NumPy DSP):** F0/pitch, enerji, konuşma hızı, duraklama + birleşik stres skoru.
+- **Akustik model fallback:** model yüklenemezse prozodik stres skoru kullanılır (kesintisiz çalışma).
+- **Değerlendirme & kalibrasyon:** precision/recall/F1 metrikleri + eşiklerin veri-güdümlü grid-search kalibrasyonu.
+- **Test & CI:** karar/prozodi/evaluation/config için 16 birim test, ruff lint, GitHub Actions.
 - FastAPI ile `/health` ve `/analyze` endpointleri eklendi ve smoke-test ile doğrulandı.
 - Streamlit arayüzünde sadeleştirilmiş sonuç ekranı, JSON indir/göster desteği ve kaydet/yeniden açma eklendi.
 - Batch analiz ve özet üretme scriptleri eklendi.

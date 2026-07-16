@@ -19,6 +19,11 @@ AcoSemantic-TR, Türkçe konuşmalarda metin anlamı ile sesin akustik özellikl
 
 Hedef: Uçtan uca çalışan, tekrar kullanılabilir JSON çıktısı veren ve üretime alınmaya uygun bir analiz katmanı sunmak.
 
+**Yeni (v1.1):** Akustik taraf artık yalnızca tek bir modele bağlı değil — **modelden bağımsız,
+sıfırdan yazılmış prozodik özellik çıkarımı** (pitch/F0, enerji, konuşma hızı, duraklamalar) eklendi.
+Bu sayede akustik analiz gerçekten "ton/stres" ölçer ve **akustik model yoksa bile** (prozodi fallback)
+sistem çalışmaya devam eder. Ayrıca eşikleri **gerçek veriyle kalibre eden** bir değerlendirme modülü var.
+
 ## Mimari (Architecture)
 
 ```mermaid
@@ -113,11 +118,39 @@ pytest -q        # birim testleri (~0.1 sn, torch/librosa gerekmez)
 
 ---
 
+## 🎚️ Prozodik Analiz (model-free) & Değerlendirme
+
+**`src/prosody.py`** — saf NumPy DSP ile ham dalga formundan yorumlanabilir prozodik öznitelikler:
+
+| Öznitelik | Ne ölçer |
+|-----------|----------|
+| `pitch_mean_hz` / `pitch_std_hz` | Otokorelasyon-tabanlı F0 ve **pitch değişkenliği** (uyarılma/stres) |
+| `rms_mean` / `rms_std` | Ses şiddeti ve değişkenliği |
+| `zcr_mean` | Sıfır-geçiş oranı (konuşma hızı/gürültü vekili) |
+| `pause_ratio` / `voiced_ratio` | Sessizlik/duraklama oranı |
+| `stress_index` (0–1) | Yukarıdakilerden türetilen **birleşik prozodik stres skoru** |
+
+Bunlar her analize eklenir; akustik model yüklenemezse `stress_index` **fallback** olarak kullanılır.
+
+**`src/evaluation.py`** — README'nin "eşikleri gerçek veriyle kalibre et" hedefini karşılar:
+`precision / recall / F1 / accuracy` metrikleri + karar eşiklerini **F1'e göre grid-search ile kalibre eden**
+`calibrate_thresholds(...)`. RAVDESS gibi etiketli verilerle çalışır.
+
+```python
+from src.evaluation import calibrate_thresholds
+# samples: (positivity, stress, is_discordant) ...
+best = calibrate_thresholds(samples)
+print(best.positive_threshold, best.stress_threshold, best.metrics["f1"])
+```
+
 ## Klasör Yapısı (Önemli Dosyalar)
 
 - `api.py` — FastAPI endpoint'leri
 - `app.py` — Streamlit arayüzü
-- `src/analysis.py` — Analiz ve karar mantığı
+- `src/analysis.py` — Uçtan uca analiz akışı (prozodi + fallback dahil)
+- `src/decision.py` — Duygu-çelişkisi karar motoru (saf, test edilebilir)
+- `src/prosody.py` — Model-free prozodik özellik çıkarımı (NumPy DSP)
+- `src/evaluation.py` — Metrikler + eşik kalibrasyonu
 - `src/models.py` — Model yükleme ve çıkarım
 - `demo_samples/` — Örnek sesler ve demo çıktıları
 
@@ -144,7 +177,7 @@ docker run --rm -p 8000:8000 --env-file .env acosemantic-tr-api
 
 ## Geliştirme ve Yayına Hazırlık
 
-1. Eşikleri gerçek veriyle yeniden kalibre edin.
+1. ✅ Eşik kalibrasyonu artık `src/evaluation.py` ile veri-güdümlü yapılabilir (F1 grid-search).
 2. Smoke testleri ve temel birim testlerini çalıştırın.
 3. Kod formatlayıcı ve linter (Black, isort, ruff/flake8) çalıştırın.
 4. Üretim `.env` ve secret yönetimini doğrulayın.
