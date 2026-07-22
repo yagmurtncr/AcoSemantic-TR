@@ -11,20 +11,23 @@
 
 > **Acoustic–semantic emotion analysis for Turkish speech.** Detects emotion mismatches and
 > anomalies by jointly evaluating textual meaning and acoustic features (tone, stress), exposing a
-> production-ready analysis layer with reusable JSON output (FastAPI + Streamlit). *Docs in Turkish.*
+> production-ready analysis layer with reusable JSON output (FastAPI + Streamlit).
 
-## AcoSemantic-TR — Kısa Tanım
+## Overview
 
-AcoSemantic-TR, Türkçe konuşmalarda metin anlamı ile sesin akustik özelliklerini (ton, stres) birlikte değerlendirerek duygu çelişkilerini ve anomalileri tespit eden bir analiz servisidir.
+AcoSemantic-TR is an analysis service that detects emotional discordance and anomalies in
+Turkish speech by jointly evaluating the **meaning of the words** and the **acoustic features
+of the voice** (tone, stress).
 
-Hedef: Uçtan uca çalışan, tekrar kullanılabilir JSON çıktısı veren ve üretime alınmaya uygun bir analiz katmanı sunmak.
+The goal is an end-to-end, production-ready analysis layer that returns reusable JSON output.
 
-**Yeni (v1.1):** Akustik taraf artık yalnızca tek bir modele bağlı değil — **modelden bağımsız,
-sıfırdan yazılmış prozodik özellik çıkarımı** (pitch/F0, enerji, konuşma hızı, duraklamalar) eklendi.
-Bu sayede akustik analiz gerçekten "ton/stres" ölçer ve **akustik model yoksa bile** (prozodi fallback)
-sistem çalışmaya devam eder. Ayrıca eşikleri **gerçek veriyle kalibre eden** bir değerlendirme modülü var.
+**New (v1.1):** The acoustic side no longer depends on a single model — a **model-free,
+from-scratch prosodic feature extractor** (pitch/F0, energy, speaking rate, pauses) was added.
+This means the acoustic analysis genuinely measures "tone/stress", and the system keeps working
+**even without the acoustic model** (prosody fallback). An evaluation module also **calibrates
+the thresholds with real data**.
 
-## Mimari (Architecture)
+## Architecture
 
 ```mermaid
 flowchart LR
@@ -44,27 +47,28 @@ flowchart LR
     JSON --> API["FastAPI / Streamlit"]
 ```
 
-## Hızlı Başlangıç
+## Quick Start
 
-1. Sanal ortam oluşturun ve etkinleştirin (ör. venv).
-2. Bağımlılıkları yükleyin:
+1. Create and activate a virtual environment (e.g. venv).
+2. Install dependencies:
 
 ```bash
 pip install -r requirements.txt
 ```
 
-3. Hugging Face token'ınızı ayarlayın (bakınız Token Yönetimi).
+3. Set your Hugging Face token (see Token Management).
 
-## Token Yönetimi
+## Token Management
 
-Model erişimi için `HF_TOKEN` veya `HUGGINGFACE_HUB_TOKEN` gereklidir. Bu token'ı repoya eklemeyin; geçici olarak PowerShell'de ayarlayabilir veya yerel, .gitignored `.streamlit/secrets.toml` içine koyabilirsiniz:
+Model access requires `HF_TOKEN` or `HUGGINGFACE_HUB_TOKEN`. Do **not** commit this token to the
+repo; set it temporarily in PowerShell or place it in a local, gitignored `.streamlit/secrets.toml`:
 
 ```toml
 HF_TOKEN = "your_hugging_face_token"
 HUGGINGFACE_HUB_TOKEN = "your_hugging_face_token"
 ```
 
-PowerShell örneği:
+PowerShell example:
 
 ```powershell
 $env:HF_TOKEN = "your_hugging_face_token"
@@ -72,21 +76,21 @@ $env:HUGGINGFACE_HUB_TOKEN = $env:HF_TOKEN
 streamlit run app.py
 ```
 
-## Nasıl Çalıştırılır
+## How to Run
 
-API başlatmak için:
+Start the API:
 
 ```bash
 uvicorn api:app --reload
 ```
 
-Sağlık kontrolü:
+Health check:
 
 ```bash
 curl http://127.0.0.1:8000/health
 ```
 
-Dosya ile analiz örneği (curl):
+Analyze a file (curl):
 
 ```bash
 curl -X POST "http://127.0.0.1:8000/analyze" \
@@ -96,45 +100,46 @@ curl -X POST "http://127.0.0.1:8000/analyze" \
   -F "acoustic_model=DynAnn Speech Emotion"
 ```
 
-Streamlit UI çalıştırmak için:
+Run the Streamlit UI:
 
 ```bash
 streamlit run app.py
 ```
 
-## 🧪 Test & Kod Kalitesi
+## 🧪 Tests & Code Quality
 
-Karar mantığı (`src/decision.py`) ses I/O ve modellerden ayrılmıştır; bu sayede saf,
-hızlı ve **ağır bağımlılık gerektirmeden** test edilebilir.
+The decision logic (`src/decision.py`) is isolated from audio I/O and the models, so it is pure,
+fast and **testable without heavy dependencies**.
 
 ```bash
-ruff check .     # lint (CI'da zorunlu)
-pytest -q        # birim testleri (~0.1 sn, torch/librosa gerekmez)
+ruff check .     # lint (required in CI)
+pytest -q        # unit tests (~0.1 s, no torch/librosa needed)
 ```
 
-- **CI** — GitHub Actions her push/PR'da `ruff` + `pytest` çalıştırır
-- **Testler** karar motorunun tüm dallarını (maskeleme anomalisi, sınır durumları,
-  ayarlanabilir eşikler) ve config bütünlüğünü kapsar
+- **CI** — GitHub Actions runs `ruff` + `pytest` on every push/PR
+- **Tests** cover all branches of the decision engine (masking anomaly, boundary cases,
+  injectable thresholds) and config integrity
 
 ---
 
-## 🎚️ Prozodik Analiz (model-free) & Değerlendirme
+## 🎚️ Prosodic Analysis (model-free) & Evaluation
 
-**`src/prosody.py`** — saf NumPy DSP ile ham dalga formundan yorumlanabilir prozodik öznitelikler:
+**`src/prosody.py`** — interpretable prosodic features extracted from the raw waveform with pure NumPy DSP:
 
-| Öznitelik | Ne ölçer |
-|-----------|----------|
-| `pitch_mean_hz` / `pitch_std_hz` | Otokorelasyon-tabanlı F0 ve **pitch değişkenliği** (uyarılma/stres) |
-| `rms_mean` / `rms_std` | Ses şiddeti ve değişkenliği |
-| `zcr_mean` | Sıfır-geçiş oranı (konuşma hızı/gürültü vekili) |
-| `pause_ratio` / `voiced_ratio` | Sessizlik/duraklama oranı |
-| `stress_index` (0–1) | Yukarıdakilerden türetilen **birleşik prozodik stres skoru** |
+| Feature | What it measures |
+|---------|------------------|
+| `pitch_mean_hz` / `pitch_std_hz` | Autocorrelation-based F0 and **pitch variability** (arousal/stress) |
+| `rms_mean` / `rms_std` | Loudness and its variability |
+| `zcr_mean` | Zero-crossing rate (speech-rate / noisiness proxy) |
+| `pause_ratio` / `voiced_ratio` | Silence / pause ratio |
+| `stress_index` (0–1) | A **composite prosodic stress score** derived from the above |
 
-Bunlar her analize eklenir; akustik model yüklenemezse `stress_index` **fallback** olarak kullanılır.
+These are added to every analysis; if the acoustic model cannot be loaded, `stress_index` is used
+as a **fallback**.
 
-**`src/evaluation.py`** — README'nin "eşikleri gerçek veriyle kalibre et" hedefini karşılar:
-`precision / recall / F1 / accuracy` metrikleri + karar eşiklerini **F1'e göre grid-search ile kalibre eden**
-`calibrate_thresholds(...)`. RAVDESS gibi etiketli verilerle çalışır.
+**`src/evaluation.py`** — delivers the "calibrate the thresholds with real data" goal:
+`precision / recall / F1 / accuracy` metrics plus `calibrate_thresholds(...)`, which **grid-searches
+the decision thresholds to maximize F1**. Works with labelled data such as RAVDESS.
 
 ```python
 from src.evaluation import calibrate_thresholds
@@ -143,45 +148,46 @@ best = calibrate_thresholds(samples)
 print(best.positive_threshold, best.stress_threshold, best.metrics["f1"])
 ```
 
-## Klasör Yapısı (Önemli Dosyalar)
+## Project Structure (Key Files)
 
-- `api.py` — FastAPI endpoint'leri
-- `app.py` — Streamlit arayüzü
-- `src/analysis.py` — Uçtan uca analiz akışı (prozodi + fallback dahil)
-- `src/decision.py` — Duygu-çelişkisi karar motoru (saf, test edilebilir)
-- `src/prosody.py` — Model-free prozodik özellik çıkarımı (NumPy DSP)
-- `src/evaluation.py` — Metrikler + eşik kalibrasyonu
-- `src/models.py` — Model yükleme ve çıkarım
-- `demo_samples/` — Örnek sesler ve demo çıktıları
+- `api.py` — FastAPI endpoints
+- `app.py` — Streamlit interface
+- `src/analysis.py` — end-to-end analysis flow (including prosody + fallback)
+- `src/decision.py` — emotion-discordance decision engine (pure, testable)
+- `src/prosody.py` — model-free prosodic feature extraction (NumPy DSP)
+- `src/evaluation.py` — metrics + threshold calibration
+- `src/models.py` — model loading and inference
+- `demo_samples/` — sample audio and demo outputs
 
-## Varsayılan Modeller ve Eşikler
+## Default Models & Thresholds
 
-- ASR: `openai/whisper-small` (varsayılan)
-- Sentiment: `savasy/bert-base-turkish-sentiment-cased` (varsayılan)
-- Akustik: `dynann/emotion-speech-recognition` (varsayılan)
-- Karar eşikleri (varsayılan, veriyle doğrulanmalı): Metin_Pozitiflik > 0.50, Ses_Stres > 0.30
+- ASR: `openai/whisper-small` (default)
+- Sentiment: `savasy/bert-base-turkish-sentiment-cased` (default)
+- Acoustic: `dynann/emotion-speech-recognition` (default)
+- Decision thresholds (default, validate with data): text_positivity > 0.50, voice_stress > 0.30
 
-## Docker (Hızlı)
+## Docker (Quick)
 
-Üretim benzeri tek servis çalıştırma için:
+For a production-like single-service run:
 
 ```bash
 docker build -t acosemantic-tr-api .
 docker run --rm -p 8000:8000 --env-file .env acosemantic-tr-api
 ```
 
-## Notlar ve İpuçları
+## Notes & Tips
 
-- Model yükleme başarısız olursa uygulama doğrudan hata verir — bu proje model tabanlı çalışmayı zorunlu kılar.
-- `demo_samples/` klasörüne test sesleri konulursa arayüz otomatik listeler.
+- If the acoustic model fails to load, the pipeline degrades gracefully to the model-free
+  prosodic stress score (see v1.1 above) instead of failing.
+- If you drop test audio into `demo_samples/`, the interface lists it automatically.
 
-## Geliştirme ve Yayına Hazırlık
+## Roadmap
 
-1. ✅ Eşik kalibrasyonu artık `src/evaluation.py` ile veri-güdümlü yapılabilir (F1 grid-search).
-2. Smoke testleri ve temel birim testlerini çalıştırın.
-3. Kod formatlayıcı ve linter (Black, isort, ruff/flake8) çalıştırın.
-4. Üretim `.env` ve secret yönetimini doğrulayın.
+1. ✅ Threshold calibration is now data-driven via `src/evaluation.py` (F1 grid-search).
+2. Run smoke tests and the core unit tests.
+3. Run formatters and a linter (Black, isort, ruff/flake8).
+4. Verify production `.env` and secret management.
 
----
+## License
 
-İhtiyorsanız README'yi daha kısa bir kullanıcı rehberi veya dağıtım talimatına da indirebilirim.
+Released under the [MIT License](LICENSE).
